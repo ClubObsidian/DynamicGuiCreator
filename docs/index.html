@@ -38,7 +38,7 @@ Close:
 </br>
 Locations:
 </br>
-<textarea rows="10" cols="40">
+<textarea rows="10" cols="40" id="locations">
 1,1,1,world
 </textarea>
 </br>
@@ -64,6 +64,26 @@ Locations:
 		
 		var close = document.getElementById("close").value;
 		build += "close: " + close;
+		
+		build += "\n";
+		
+		var locations = document.getElementById("locations").value;
+		locations = locations.trim();
+		
+		build += "locations: \n";
+		
+		if(locations.includes("\n"))
+		{
+			var split = locations.split("\n");
+			for(var i = 0; i < split.length; i++)
+			{
+				build += "- " + split[i] + "\n";
+			}
+		}
+		else
+		{
+			build += "- " + locations;
+		}
 		
 		var doc = jsyaml.load(build);
 		console.log(jsyaml.dump(doc));

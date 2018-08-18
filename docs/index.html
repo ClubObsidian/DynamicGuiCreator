@@ -1,6 +1,7 @@
 <html>
 <head>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.0/js-yaml.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
 </head>
 <body>
 Title:
@@ -86,7 +87,10 @@ Locations:
 		}
 		
 		var doc = jsyaml.load(build);
-		console.log(jsyaml.dump(doc));
+		var dumped = jsyaml.dump(doc);
+		console.log(dumped);
+		var dumpBlob = new Blob([dumped], {type: "text/plain;charset=utf-8"});
+		saveAs(dumpBlob, title + ".yml");
 	}
 </script>
 <input id="build" type="button" value="Build" onclick="build();"></input>

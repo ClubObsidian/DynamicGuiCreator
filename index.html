@@ -1,0 +1,73 @@
+<html>
+<head>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.0/js-yaml.min.js"></script>
+</head>
+<body>
+Title:
+<input type="text" id="title">
+</br>
+</br>
+Rows:
+<select id="rows">
+</select>
+<script type = "text/javascript">
+	var rows = document.getElementById("rows");
+	for(var i = 1; i < 7; i++)
+	{
+		var option = document.createElement("option");
+		option.text = i;
+		option.value = i;
+		rows.add(option)
+	}
+</script>
+</br>
+</br>
+Mode: 
+<select id="mode">
+	<option value="set">set</option>
+	<option value="add">add</option>
+</select>
+</br>
+</br>
+Close:
+<select id="close">
+	<option value="true">true</option>
+	<option value="false">false</option>
+</select>
+</br>
+</br>
+Locations:
+</br>
+<textarea rows="10" cols="40">
+1,1,1,world
+</textarea>
+</br>
+</br>
+<script>
+	function build()
+	{
+		var build = "";
+		var title = document.getElementById("title").value;
+		build += "gui-title: " + title;
+		
+		build += "\n";
+		
+		var rows = document.getElementById("rows").value;
+		build+= "rows: " + rows;
+		
+		build += "\n";
+		
+		var mode = document.getElementById("mode").value;
+		build += "mode: " + mode;
+		
+		build += "\n";
+		
+		var close = document.getElementById("close").value;
+		build += "close: " + close;
+		
+		var doc = jsyaml.load(build);
+		console.log(jsyaml.dump(doc));
+	}
+</script>
+<input id="build" type="button" value="Build" onclick="build();"></input>
+</html>

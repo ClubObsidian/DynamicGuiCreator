@@ -6,7 +6,7 @@ function downloadTextureData(output) {
         cache: true,
         success: function(data) {
             var tData;
-            var dataScript = data.substring(0,data.length-26)+"; tData = Textures;"; // length-26 removes the "invalid" js code
+            var dataScript = data.substring(0,data.length-26)+'; tData = Textures;'; // length-26 removes the "invalid" js code
             eval(dataScript);
             output(tData);
         },
@@ -17,7 +17,7 @@ function downloadTextureData(output) {
 }
 
 function startStuff() {
-    var textureData;
+    var textureSource;
     /*
     var stage = new createjs.Stage("testCanvas");
 
@@ -29,11 +29,40 @@ function startStuff() {
 
     stage.update();
     */
+
+    var stage = new createjs.Stage('mainApp');
    
     downloadTextureData(function(data){
-        textureData = data;
-        console.log(textureData);
+        textureSource = data;
     });
 
-}
+    createjs.Ticker.framerate = 60;
+    createjs.Ticker.addEventListener("tick",checkTexture);
 
+    // Function to check if the texture is downloaded.
+    function checkTexture(event) {
+        if (textureSource != undefined) {
+            createjs.Ticker.removeEventListener("tick",checkTexture);
+            var textureData = textureSource['items'];
+            var testTexture= textureData[0]['texture']
+            console.log(testTexture);
+            var testImage = document.createElement("IMG");
+            testImage.setAttribute('src', testTexture);
+            var testSprite = new createjs.Bitmap(testImage);
+            testSprite.regX = testSprite.image.width/2;
+            testSprite.regY = testSprite.image.height/2;
+            testSprite.x = stage.canvas.width/2;
+            testSprite.y = stage.canvas.height/2;
+            stage.addChild(testSprite)
+
+            stage.update();
+            //createjs.Ticker.addEventListener("tick",runApp);
+        }
+    }
+
+    // Dunno yet
+    function runApp(event) {
+        
+    }
+
+}

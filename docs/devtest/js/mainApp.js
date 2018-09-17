@@ -88,8 +88,10 @@ function startStuff() {
             stage.addChild(guiFooter);
             
             var testSprite = new createjs.Bitmap(testImage);
-            testSprite.x = 159;
-            testSprite.y = 67;
+            testSprite.x = 80;
+            testSprite.y = 86;
+            testSprite.scaleX = 1.4;
+            testSprite.scaleY = 1.4;
             stage.addChild(testSprite);
 
             stage.update();

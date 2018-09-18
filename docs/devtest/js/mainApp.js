@@ -120,7 +120,7 @@ function startStuff() {
         glintSheet1 = new createjs.SpriteSheet({
             images: [eGlint1],
             frames: {width:64, height: 64, regX: 16, regY: 0},
-            framerate: 43,
+            framerate: 35,
             animations: {
                 default: {
                     frames: [0,63],
@@ -131,7 +131,7 @@ function startStuff() {
         glintSheet2 = new createjs.SpriteSheet({
             images: [eGlint2],
             frames: {width:64, height: 64, regX: 16, regY: 0},
-            framerate: 30,
+            framerate: 28,
             animations: {
                 default: {
                     frames: [0,63],

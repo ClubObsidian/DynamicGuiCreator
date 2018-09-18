@@ -1,9 +1,10 @@
-var textureSource, gHeader, gRow, gFooter;
+var textureSource, gHeader, gRow, gFooter, eGlint1, eGlint2, glintSheet1, glintSheet2;
 var queue;
 var preload = false;
 
 var slots = [];
 var hue = 0;
+var fpsText;
 
 // Use ajax to grab the minecraft block/item icons that destruc7i0n generously put together for the world.
 function downloadTextureData(output) {
@@ -87,7 +88,8 @@ function startStuff() {
             x: 0,
             y: 0,
             image: undefined,
-            effects: undefined
+            glint1: undefined,
+            glint2: undefined
         }
     }
 
@@ -104,13 +106,40 @@ function startStuff() {
     queue.loadManifest([
         {id:'guiheader', src:'./img/GUI_Header.png'},
         {id:'guirow', src:'./img/GUI_Row.png'},
-        {id:'guifooter', src:'./img/GUI_Footer.png'}
+        {id:'guifooter', src:'./img/GUI_Footer.png'},
+        {id:'enchant1', src:'./img/glint1.png'},
+        {id:'enchant2', src:'./img/glint2.png'}
     ])
 
     function preloadedAssets() {
         gHeader = queue.getResult('guiheader');
         gRow = queue.getResult('guirow');
         gFooter = queue.getResult('guifooter');
+        eGlint1 = queue.getResult('enchant1');
+        eGlint2 = queue.getResult('enchant2');
+        glintSheet1 = new createjs.SpriteSheet({
+            images: [eGlint1],
+            frames: {width:64, height: 64, regX: 16, regY: 0},
+            framerate: 43,
+            animations: {
+                default: {
+                    frames: [0,63],
+                    next: "default"
+                }
+            }
+        })
+        glintSheet2 = new createjs.SpriteSheet({
+            images: [eGlint2],
+            frames: {width:64, height: 64, regX: 16, regY: 0},
+            framerate: 30,
+            animations: {
+                default: {
+                    frames: [0,63],
+                    next: "default"
+                }
+            }
+        })
+
         preload = true;
     }
 
@@ -126,6 +155,12 @@ function startStuff() {
             console.log(testTexture);
             var testImage = new Image();
             testImage.setAttribute('src', testTexture);
+
+            fpsText = new createjs.Text("FPS: "+createjs.Ticker.getMeasuredFPS(), "20px Arial", "#000000");
+            fpsText.x = 16;
+            fpsText.y = 16;
+            //fpsText.textBaseline = "alphabetic";
+            stage.addChild(fpsText);
 
             guiX = Math.round(stage.canvas.width*.5)-Math.round(guiW*.5);
             guiY = Math.round(stage.canvas.height*.5)-Math.round(guiH*.5);
@@ -162,24 +197,41 @@ function startStuff() {
                 slots[i]['x'] = tx;
                 slots[i]['y'] = ty;
                 slots[i]['image'] = new createjs.Bitmap(testImage);
-                slots[i]['effects'] = new createjs.Bitmap(testImage);
                 slots[i]['image'].x = tx;
                 slots[i]['image'].y = ty;
                 slots[i]['image'].scaleX = 1.4;
                 slots[i]['image'].scaleY = 1.4;
+                slots[i]['image'].cache(0,0,45,45);
 
-                slots[i]['effects'].x = tx;
-                slots[i]['effects'].y = ty;
-                slots[i]['effects'].scaleX = slots[i]['image'].scaleX;
-                slots[i]['effects'].scaleY = slots[i]['image'].scaleY;
-                slots[i]['effects'].alpha = 1;
-                slots[i]['effects'].filters = [
-                    new createjs.ColorFilter(0,0,0,.25,0,0,0,0)
+                var gImg1 = slots[i]['glint1'] = new createjs.Sprite(glintSheet1);
+                gImg1.play();
+                gImg1.x = tx;
+                gImg1.y = ty;
+                gImg1.scaleX = slots[i]['image'].scaleX;
+                gImg1.scaleY = slots[i]['image'].scaleY;
+                gImg1.alpha = .15;
+                gImg1.filters = [
+                    new createjs.AlphaMaskFilter(slots[i]['image'].cacheCanvas)
+                    //,new createjs.ColorFilter(0,0,0,.25,0,0,0,0)
+                ]
+
+                var gImg2 = slots[i]['glint2'] = new createjs.Sprite(glintSheet2);
+                gImg2.play();
+                gImg2.x = tx;
+                gImg2.y = ty;
+                gImg2.scaleX = slots[i]['image'].scaleX;
+                gImg2.scaleY = slots[i]['image'].scaleY;
+                gImg2.alpha = .15;
+                gImg2.filters = [
+                    new createjs.AlphaMaskFilter(slots[i]['image'].cacheCanvas)
                 ]
 
                 stage.addChild(slots[i]['image']);
-                slots[i]['effects'].cache(0,0,45,45)
-                stage.addChild(slots[i]['effects']);
+
+                slots[i]['glint1'].cache(0,0,45,45)
+                slots[i]['glint2'].cache(0,0,45,45)
+                stage.addChild(slots[i]['glint1']);
+                stage.addChild(slots[i]['glint2']);
                 if ((i+1)%9 == 0) {
                     doY++;
                     doX = 0;
@@ -189,21 +241,31 @@ function startStuff() {
             }
 
             stage.update();
-            createjs.Ticker.addEventListener("tick",runApp);
+            //createjs.Ticker.addEventListener("tick",runApp);
+            createjs.Ticker.on('tick', runApp);
         }
     }
 
     // Dunno yet
     function runApp(event) {
-        hue++;
+        fpsText.text = "FPS: "+createjs.Ticker.getMeasuredFPS();
+        
+        //hue++;
         var rgb = hsv2rgb(hue%255,255,255);
         for (var i=0; i<9*rows; i++) {
-            slots[i]['effects'].filters = [
-                new createjs.ColorFilter(0,0,0,.1,rgb[0],rgb[1],rgb[2],0)
+            slots[i]['glint1'].filters = [
+                new createjs.AlphaMaskFilter(slots[i]['image'].cacheCanvas)
+                //,new createjs.ColorFilter(0,0,0,.25,rgb[0],rgb[1],rgb[2],0)
             ]
-            slots[i]['effects'].cache(0,0,45,45);
+            slots[i]['glint2'].filters = [
+                new createjs.AlphaMaskFilter(slots[i]['image'].cacheCanvas)
+                //,new createjs.ColorFilter(0,0,0,.25,rgb[0],rgb[1],rgb[2],0)
+            ]
+            slots[i]['glint1'].cache(0,0,45,45);
+            slots[i]['glint2'].cache(0,0,45,45);
         }
-        stage.update();
+        
+        stage.update(event);
     }
 
 }

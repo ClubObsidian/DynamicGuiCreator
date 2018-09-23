@@ -74,8 +74,8 @@ var minecraftColors = {
     7: '#AAAAAA',
     8: '#555555',
     9: '#5555FF',
-    a: '#5555FF',
-    b: '#55FF55',
+    a: '#55FF55',
+    b: '#55FFFF',
     c: '#FF5555',
     d: '#FF55FF',
     e: '#FFFF55',
@@ -113,23 +113,27 @@ function parseMinecraftText(text) {
                             mIndex++;
                         }
                         i++;
-                        colorCode = c2;
-                        mText[mIndex] = ["",c2]
+                        colorCode = c2.toLowerCase();
+                        mText[mIndex] = ["",colorCode]
                     } else if (minecraftFormat[c2] != undefined) {
+                        var prevFormat = ""
                         if (i != 0) {
                             if (mText[mIndex][0] != "") {
+                                prevFormat = mText[mIndex][1];
                                 mIndex++;
                             }
                         }
                         i++
-                        if (c2 == "r") {
+                        var formatCode = c2.toLowerCase();
+                        if (formatCode == "r") {
                             colorCode = "f";
+                            prevFormat = colorCode;
                             mText[mIndex] = ["",colorCode];
                         } else {
                             if (mText[mIndex] == undefined) {
-                                mText[mIndex] = ["",colorCode+c2];
+                                mText[mIndex] = ["",prevFormat+formatCode];
                             } else {
-                                mText[mIndex][1] += c2;
+                                mText[mIndex][1] += formatCode;
                             }
                         }
                     }
@@ -196,13 +200,48 @@ p._drawText = function(ctx, o, lines) {
         for (var j=0; j<lineData.length; ++j) {
             var formatCodes = lineData[j][1].split("");
             var fontFormat = "";
+            var strike = false;
+            var underline = false;
             for (k=1; k<formatCodes.length; ++k) {
-                fontFormat += minecraftFormat[formatCodes[k]];
+                switch (formatCodes[k]) {
+                    case "m":
+                        strike = true;
+                    break;
+
+                    case "n":
+                        underline = true;
+                    break;
+
+                    default:
+                        fontFormat += minecraftFormat[formatCodes[k]];
+                    break;
+                }
             }
             var textChar = lineData[j][0];
             ctx.font = fontFormat+font;
             ctx.fillStyle = minecraftColors[formatCodes];
             ctx.fillText(textChar, tx, ty, this.maxWidth||0xFFFF);
+            if (strike || underline) {
+                var prevStrokeStyle = ctx.strokeStyle;
+                var strokeWidth = ctx.measureText(textChar).width;
+                ctx.strokeStyle = ctx.fillStyle;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (strike) {
+                    var strokeY = ty+(lineHeight*.5);
+                    ctx.moveTo(tx,strokeY);
+                    ctx.lineTo(tx+strokeWidth,strokeY);
+                    ctx.stroke();
+                }
+                if (underline) {
+                    var strokeY = ty+lineHeight+3;
+                    ctx.moveTo(tx,strokeY);
+                    ctx.lineTo(tx+strokeWidth,strokeY);
+                    ctx.stroke();
+                }
+                ctx.closePath()
+                //ctx.strokeStyle = prevStrokeStyle;
+            }
             tx += ctx.measureText(textChar).width;
         }
         ty += lineHeight+6;
@@ -402,7 +441,7 @@ function startStuff() {
 
             cHover = new createjs.Container();
 
-            hoverText = new minecraftText("test &aa&bb &cc TEST &ddTEST &ee &ff &1one &22&33&44||New Line &acolor change &lBold||New line &bcolor change &rReset format", "16px");
+            hoverText = new minecraftText("test &aa&bb &cc TEST & && &&& &ddTEST &ee &ff &1one &22&33&44||NL &acolor change &lBold &mStrike Bold||NL &bcolor change &nUnderline &mWith strike &land bold &rReset format", "16px");
             hoverText.x = 0;
             hoverText.y = 0;
             cHover.addChild(hoverText);

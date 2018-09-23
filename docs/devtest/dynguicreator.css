@@ -1,3 +1,13 @@
+@font-face {
+	font-family: "Minecraft";
+	font-style: normal;
+	font-weight: 400;
+	src: url("https://raw.githubusercontent.com/South-Paw/Minecraft-Webfont-and-Colors/385ea34d2e96098597ec1e6a33f3af83de8acfb1/font/minecraft_font.eot") format("eot"), 
+	     url("https://raw.githubusercontent.com/South-Paw/Minecraft-Webfont-and-Colors/385ea34d2e96098597ec1e6a33f3af83de8acfb1/font/minecraft_font.woff") format("woff"), 
+	     url("https://raw.githubusercontent.com/South-Paw/Minecraft-Webfont-and-Colors/385ea34d2e96098597ec1e6a33f3af83de8acfb1/font/minecraft_font.ttf") format("truetype"), 
+	     url("https://raw.githubusercontent.com/South-Paw/Minecraft-Webfont-and-Colors/385ea34d2e96098597ec1e6a33f3af83de8acfb1/font/minecraft_font.svg#Minecraft") format("svg");
+}
+
 body {
     background: rgb(204,255,255);
     height: 100%;

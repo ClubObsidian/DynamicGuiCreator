@@ -97,13 +97,10 @@ function magicMinecraftText(ctx, text) {
     var magicText = "";
     for (var i=0; i<splitChars.length; ++i) {
         var char = splitChars[i];
-
         var j = whyMinecraft.indexOf(char);
-
         if (j != -1) {
             var charWidth = ctx.measureText(char).width;
             var randomChar;
-
             while (true) {
                 j = Math.round(Math.random()*whyMinecraft.length);
                 randomChar = whyMinecraft.charAt(j);
@@ -112,25 +109,85 @@ function magicMinecraftText(ctx, text) {
                     break;
                 }
             }
-            
             magicText += randomChar;
         }
     }
-    
     return magicText;
 }
 
-function testparseMinecraftText(text) {
+function parseMinecraftText(text) {
     var mText = [];
     var mLines = [];
     var mLine = 0;
     var mIndex = 0;
-    var mEscape = false;
     var colorCode = "f";
-
+    var chars = text.split("");
+    for (var i=0; i < text.length; ++i) {
+        var addChar = false;
+        var c1 = chars[i];
+        var c2 = NaN;
+        if (i+1 <= text.length) {
+            c2 = chars[i+1];
+        }
+        if (c1 == "&") {
+            if (c2 != NaN) {
+                if (minecraftColors[c2] != undefined) {
+                    if (mText[mIndex] != undefined){
+                        mIndex++;
+                    }
+                    i++;
+                    colorCode = c2.toLowerCase();
+                    mText[mIndex] = ["",colorCode]
+                } else if (minecraftFormat[c2] != undefined) {
+                    var prevFormat = ""
+                    if (i != 0) {
+                        if (mText[mIndex][0] != "") {
+                            prevFormat = mText[mIndex][1];
+                            mIndex++;
+                        }
+                    }
+                    i++
+                    var formatCode = c2.toLowerCase();
+                    if (formatCode == "r") {
+                        colorCode = "f";
+                        prevFormat = colorCode;
+                        mText[mIndex] = ["",colorCode];
+                    } else {
+                        if (mText[mIndex] == undefined) {
+                            mText[mIndex] = ["",prevFormat+formatCode];
+                        } else {
+                            mText[mIndex][1] += formatCode;
+                        }
+                    }
+                } else {
+                    addChar = true;
+                }
+            } else {
+                addChar = true;
+            }
+        } else if (c1 == "|" && c2 == "|") {
+            i++;
+            mLines[mLine] = mText;
+            mLine++;
+            mText = [];
+            mIndex = 0;
+            colorCode = "f";
+        } else {
+            addChar = true;
+        }
+        if (addChar) {
+            if (mText[mIndex] == undefined) {
+                mText[mIndex] = [c1,'f'];
+            } else {
+                mText[mIndex][0] += c1;
+            }
+        }
+    }
+    mLines[mLine] = mText;
+    return mLines;
 }
 
-function parseMinecraftText(text) {
+function oldparseMinecraftText(text) {
     var mText = [];
     var mLines = [];
     var mLine = 0;
@@ -467,16 +524,17 @@ function startStuff() {
                 slots[i]['image'].scaleY = 1.4;
                 slots[i]['image'].cache(0,0,45,45);
                 slots[i]['image'].slotNumber = i;
+                /*
                 slots[i]['image'].on("mouseover", function(evt) {
                     hoverText.text = slots[evt.target.slotNumber]['hover'];
                     hoverText.updatedText = true;
-                    hoverBack.graphics.clear().setStrokeStyle(2).beginFill("#000000").drawRect(-8,-6,hoverText.getBounds().width+8+8,hoverText.getBounds().height+4+4).drawRect(-6,-8,hoverText.getBounds().width+4+8,hoverText.getBounds().height+8+4);;
+                    hoverBack.graphics.clear().setStrokeStyle(2).beginFill("#000000").drawRect(-8,-6,hoverText.getBounds().width+8+8,hoverText.getBounds().height+4+4).drawRect(-6,-8,hoverText.getBounds().width+4+8,hoverText.getBounds().height+8+4);
                     hoverBack.alpha = .75;
                     cHover.alpha = 1;
                 })
                 slots[i]['image'].on("mouseout", function() {
                     cHover.alpha = 0;
-                })
+                })*/
 
                 var gImg1 = slots[i]['glint1'] = new createjs.Sprite(glintSheet1);
                 gImg1.play();
@@ -513,7 +571,6 @@ function startStuff() {
                 } else {
                     doX++;
                 }
-
             }
 
             cHover = new createjs.Container();
@@ -531,7 +588,7 @@ function startStuff() {
 
             cHover.addChild(hoverBack);
             cHover.addChild(hoverText);
-            cHover.alpha = 0;
+            cHover.alpha = 1;
             stage.addChild(cHover);
             stage.on("stagemousemove", function(evt) {
                 cHover.x = Math.round(evt.stageX)+20;

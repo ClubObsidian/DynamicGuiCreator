@@ -470,7 +470,7 @@ function startStuff() {
                 slots[i]['image'].on("mouseover", function(evt) {
                     hoverText.text = slots[evt.target.slotNumber]['hover'];
                     hoverText.updatedText = true;
-                    hoverBack.graphics.clear().setStrokeStyle(2).beginFill("#000000").drawRect(-8,-6,hoverText.getBounds().width+8+8,hoverText.getBounds().height+4).drawRect(-6,-8,hoverText.getBounds().width+4+8,hoverText.getBounds().height+8);;
+                    hoverBack.graphics.clear().setStrokeStyle(2).beginFill("#000000").drawRect(-8,-6,hoverText.getBounds().width+8+8,hoverText.getBounds().height+4+4).drawRect(-6,-8,hoverText.getBounds().width+4+8,hoverText.getBounds().height+8+4);;
                     hoverBack.alpha = .75;
                     cHover.alpha = 1;
                 })

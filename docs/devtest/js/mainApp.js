@@ -5,7 +5,7 @@ var preload = false;
 
 var slots = [];
 var hue = 0;
-var fpsText, hoverText;
+var fpsText, hoverText, hoverBack;
 
 // Use ajax to grab the minecraft block/item icons that destruc7i0n generously put together for the world.
 function downloadTextureData(output) {
@@ -90,7 +90,7 @@ var minecraftFormat = {
     o: "ITALIC " // Italic
 }
 
-// Used Forge as a reference on how to render the "magic" random text
+// Used the minecraft client as a reference on how to generate the "magic" random text
 function magicMinecraftText(ctx, text) {
     var whyMinecraft = "\u00c0\u00c1\u00c2\u00c8\u00ca\u00cb\u00cd\u00d3\u00d4\u00d5\u00da\u00df\u00e3\u00f5\u011f\u0130\u0131\u0152\u0153\u015e\u015f\u0174\u0175\u017e\u0207 !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00f8\u00a3\u00d8\u00d7\u0192\u00e1\u00ed\u00f3\u00fa\u00f1\u00d1\u00aa\u00ba\u00bf\u00ae\u00ac\u00bd\u00bc\u00a1\u00ab\u00bb\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255d\u255c\u255b\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u255e\u255f\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256b\u256a\u2518\u250c\u2588\u2584\u258c\u2590\u2580\u03b1\u03b2\u0393\u03c0\u03a3\u03c3\u03bc\u03c4\u03a6\u0398\u03a9\u03b4\u221e\u2205\u2208\u2229\u2261\u00b1\u2265\u2264\u2320\u2321\u00f7\u2248\u00b0\u2219\u00b7\u221a\u207f\u00b2\u25a0"
     var splitChars = text.split("");
@@ -118,6 +118,16 @@ function magicMinecraftText(ctx, text) {
     }
     
     return magicText;
+}
+
+function testparseMinecraftText(text) {
+    var mText = [];
+    var mLines = [];
+    var mLine = 0;
+    var mIndex = 0;
+    var mEscape = false;
+    var colorCode = "f";
+
 }
 
 function parseMinecraftText(text) {
@@ -203,17 +213,29 @@ function drawGUI(st) {
 // Extends EaselJS's text class to help render Minecraft text
 function minecraftText(text, font) {
     this.Text_constructor(text, font+" Minecraft");
+    this.parsedText = parseMinecraftText(text);
+    this.previousText = text;
+    this.updatedText = true;
+    this.canvas = (createjs.createCanvas?createjs.createCanvas():document.createElement("canvas"));
+    if (this.canvas.getContext) { Text._workingContext = this.canvas.getContext("2d"); this.canvas.width = this.canvas.height = 1; }
 }
 
 var p = createjs.extend(minecraftText, createjs.Text);
 
 p._drawText = function(ctx, o, lines) {
     var paint = !!ctx;
+    var doStuff = true;
     if (!paint) {
-        this.parsedText = parseMinecraftText(this.text);
         ctx = Text._workingContext;
-        ctx.save();
-        this._pretContext(ctx);
+        if (ctx == undefined) {
+            doStuff = false;
+        } else {
+            ctx.save();
+            this._prepContext(ctx);
+        }
+    }
+    if (!doStuff) {
+        return o;
     }
     var lineHeight = this.lineHeight||this.getMeasuredLineHeight();
     var maxW = 0;
@@ -325,7 +347,7 @@ function startStuff() {
             image: undefined,
             glint1: undefined,
             glint2: undefined,
-            hover: undefined
+            hover: ""
         }
     }
 
@@ -387,12 +409,8 @@ function startStuff() {
         if (textureSource != undefined && preload == true) {
             createjs.Ticker.removeEventListener("tick",checkAssets);
             var textureData = textureSource['items'];
-            var testTexture= textureData[0]['texture']
-            //console.log(testTexture);
-            var testImage = new Image();
-            testImage.setAttribute('src', testTexture);
 
-            fpsText = new createjs.Text("FPS: "+createjs.Ticker.getMeasuredFPS(), "20px Arial", "#000000");
+            fpsText = new createjs.Text("FPS: "+Math.round(createjs.Ticker.getMeasuredFPS()), "20px Arial", "#000000");
             //fpsText = new minecraftText("FPS: "+createjs.Ticker.getMeasuredFPS())
             fpsText.x = 16;
             fpsText.y = 16;
@@ -428,20 +446,37 @@ function startStuff() {
             
             var doX = 0;
             var doY = 0;
+            stage.enableMouseOver(60);
             for (var i=0; i < 9*rows; i++) {
                 var tx, ty;
+                var testTexture= textureData[i]['texture']
+                var testImage = new Image();
+                testImage.setAttribute('src', testTexture);
+
                 tx = guiX+guiSlotStartX+(guiSlotGap*doX)+(slotBounds*doX);
                 ty = guiY+guiSlotStartY+(guiSlotGap*doY)+(slotBounds*doY);
                 
-                slots[i]['item'] = textureData['id'];
+                slots[i]['item'] = textureData[i]['id'];
                 slots[i]['x'] = tx;
                 slots[i]['y'] = ty;
+                slots[i]['hover'] = "&aSlot #"+i+"||&aItem: &b"+textureData[i]['readable']+"||&aItem ID: &b"+textureData[i]['id'];
                 slots[i]['image'] = new createjs.Bitmap(testImage);
                 slots[i]['image'].x = tx;
                 slots[i]['image'].y = ty;
                 slots[i]['image'].scaleX = 1.4;
                 slots[i]['image'].scaleY = 1.4;
                 slots[i]['image'].cache(0,0,45,45);
+                slots[i]['image'].slotNumber = i;
+                slots[i]['image'].on("mouseover", function(evt) {
+                    hoverText.text = slots[evt.target.slotNumber]['hover'];
+                    hoverText.updatedText = true;
+                    hoverBack.graphics.clear().setStrokeStyle(2).beginFill("#000000").drawRect(-8,-6,hoverText.getBounds().width+8+8,hoverText.getBounds().height+4).drawRect(-6,-8,hoverText.getBounds().width+4+8,hoverText.getBounds().height+8);;
+                    hoverBack.alpha = .75;
+                    cHover.alpha = 1;
+                })
+                slots[i]['image'].on("mouseout", function() {
+                    cHover.alpha = 0;
+                })
 
                 var gImg1 = slots[i]['glint1'] = new createjs.Sprite(glintSheet1);
                 gImg1.play();
@@ -478,14 +513,25 @@ function startStuff() {
                 } else {
                     doX++;
                 }
+
             }
 
             cHover = new createjs.Container();
 
-            hoverText = new minecraftText("test &aa&bb &cc TEST & && &&& &ddTEST &ee &ff &1one &22&33&44||NL &acolor change &lBold &mStrike Bold||NL &bcolor change &nUnderline &mWith strike &land bold &rReset format||NL &dChange color &kMagic text &rReset format", "16px");
+
+            hoverText = new minecraftText("test &aa&bb &cc TEST & && &&& &&f& &&&f& &ddTEST &ee &ff &1one &22&33&44||NL &acolor change &lBold &mStrike Bold||NL &bcolor change &nUnderline &mWith strike &land bold||NL &dChange color &kMagic text &rReset format", "16px");
             hoverText.x = 0;
             hoverText.y = 0;
+
+
+            hoverBack = new createjs.Shape();
+            hoverBack.graphics.clear().setStrokeStyle(2).beginFill("#000000").drawRect(-8,-6,hoverText.getBounds().width+8+8,hoverText.getBounds().height+4+15).drawRect(-6,-8,hoverText.getBounds().width+4+8,hoverText.getBounds().height+8+15);
+            hoverBack.alpha = .75;
+            hoverText.updatedText = false;
+
+            cHover.addChild(hoverBack);
             cHover.addChild(hoverText);
+            cHover.alpha = 0;
             stage.addChild(cHover);
             stage.on("stagemousemove", function(evt) {
                 cHover.x = Math.round(evt.stageX)+20;
@@ -500,7 +546,7 @@ function startStuff() {
 
     // Run the main app
     function runApp(event) {
-        fpsText.text = "FPS: "+createjs.Ticker.getMeasuredFPS();
+        fpsText.text = "FPS: "+Math.round(createjs.Ticker.getMeasuredFPS());
         
         //hue++;
         var rgb = hsv2rgb(hue%255,255,255);

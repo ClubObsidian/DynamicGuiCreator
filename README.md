@@ -1,6 +1,10 @@
 # DynamicGUICreator
-In-browser creator for DynamicGUI
+In-browser creator and viewer for DynamicGUI
 
 ## TODO
 
-More information to come soon.
+1. Setup Phaser v3 Environment
+2. Setup General Phaser View (Inventory)
+3. Get Assets For Blocks 
+4. Setup YML to Inventory Function
+5. Apply Macros
